@@ -1,0 +1,72 @@
+name: screen
+# Triggered by pushing jobs/run.json: {"tag": "...", "mode": "screen"|"validate", "seeds": "A-B", "jobs": 1}
+on:
+  push:
+    branches: [main]
+    paths: ["jobs/run.json"]
+permissions:
+  contents: write
+jobs:
+  shard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 345
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read job
+        id: job
+        run: |
+          echo "tag=$(jq -r .tag jobs/run.json)" >> "$GITHUB_OUTPUT"
+          echo "mode=$(jq -r .mode jobs/run.json)" >> "$GITHUB_OUTPUT"
+          echo "seeds=$(jq -r .seeds jobs/run.json)" >> "$GITHUB_OUTPUT"
+          echo "jobs=$(jq -r .jobs jobs/run.json)" >> "$GITHUB_OUTPUT"
+      - name: Skip extra shards in validate mode
+        if: steps.job.outputs.mode == 'validate' && matrix.shard != 0
+        run: echo "validate uses shard 0 only"
+      - uses: actions/setup-python@v5
+        if: steps.job.outputs.mode == 'screen' || matrix.shard == 0
+        with:
+          python-version: "3.13"
+      - name: Build bots and field
+        if: steps.job.outputs.mode == 'screen' || matrix.shard == 0
+        run: |
+          pip install -q numpy==2.3.4 scipy==1.16.3
+          bash ci/build.sh
+      - name: Play
+        if: steps.job.outputs.mode == 'screen' || matrix.shard == 0
+        env:
+          LAB: ${{ github.workspace }}
+          LAB_PY: python
+          LAB_ARENA: ${{ github.workspace }}/arena
+          LAB_FIELD: ${{ github.workspace }}/field
+          LAB_BOT: ${{ github.workspace }}/bin/mechbot
+          LAB_CACHE: ${{ github.workspace }}/out/shard-${{ matrix.shard }}.jsonl
+        run: |
+          mkdir -p out
+          nproc; free -g | head -2
+          cd exp
+          if [ "${{ steps.job.outputs.mode }}" = "validate" ]; then
+            python -u ffa_shard.py --validate --seeds ${{ steps.job.outputs.seeds }} --jobs ${{ steps.job.outputs.jobs }}
+          else
+            python -u ffa_shard.py --shard ${{ matrix.shard }} --nshards 20 --seeds ${{ steps.job.outputs.seeds }} --jobs ${{ steps.job.outputs.jobs }}
+          fi
+      - name: Commit results
+        if: always() && (steps.job.outputs.mode == 'screen' || matrix.shard == 0)
+        run: |
+          f=out/shard-${{ matrix.shard }}.jsonl
+          [ -f "$f" ] || exit 0
+          dest=results/${{ steps.job.outputs.tag }}/shard-${{ matrix.shard }}-${{ github.run_id }}.jsonl
+          git config user.name "lab-bot"; git config user.email "lab-bot@users.noreply.github.com"
+          cp "$f" /tmp/res.jsonl
+          git fetch -q origin results || true
+          if git rev-parse -q --verify origin/results >/dev/null; then git checkout -q -B results origin/results; else git checkout -q --orphan results; git rm -rq --cached . ; fi
+          mkdir -p "$(dirname "$dest")"; cp /tmp/res.jsonl "$dest"
+          git add "$dest"; git commit -q -m "results ${{ steps.job.outputs.tag }} shard ${{ matrix.shard }}"
+          for i in 1 2 3 4 5 6 7 8; do
+            git push -q origin results && exit 0
+            sleep $((RANDOM % 10 + 3)); git fetch -q origin results && git rebase -q origin/results
+          done
+          exit 1
