@@ -16,12 +16,23 @@ import doe
 
 import os
 GO = os.environ.get("LAB_BOT", str(Path.home() / "mech/gg/inst/mechbot"))
-# name: (low = shipped, high)
-FACTORS = {
-    "Vulture": (0, 0.4), "Odds": (0, 0.6), "OddsFlee": (0, 0.3), "FarmNPC": (True, False), "Shy": (0, 150),
-    "EarlyHide": (0, 60), "Evade": (False, True), "CrateUntil": (150, 60), "EngageDist": (60, 80),
-    "RetreatHP": (0.38, 0.28), "LootRadius": (90, 150),
+# name: (low = shipped, high). LAB_DESIGN selects the factor set (1 = first screen, 2 = second screen).
+DESIGNS = {
+    "1": {
+        "Vulture": (0, 0.4), "Odds": (0, 0.6), "OddsFlee": (0, 0.3), "FarmNPC": (True, False), "Shy": (0, 150),
+        "EarlyHide": (0, 60), "Evade": (False, True), "CrateUntil": (150, 60), "EngageDist": (60, 80),
+        "RetreatHP": (0.38, 0.28), "LootRadius": (90, 150),
+    },
+    # Second screen: mechanics the rules document that the shipped FFA mode leaves off (drops: full HP + 3 cubes;
+    # mortar: lobs over cover, beats lightning), our measured FireGate, and the FFA-mode switches whose
+    # alternative values the code itself uses in practice mode.
+    "2": {
+        "UseDrops": (False, True), "NoMortar": (True, False), "FireGate": (False, True), "Ghost": (True, False),
+        "Peek": (True, False), "CrowdHide": (True, False), "HomeExpo": (120, 60), "Explore": (False, True),
+        "LaserFirst": (True, False), "RecoverHP": (0.8, 0.6), "LaserRange": (85, 120),
+    },
 }
+FACTORS = DESIGNS[os.environ.get("LAB_DESIGN", "1")]
 F = list(FACTORS)
 
 

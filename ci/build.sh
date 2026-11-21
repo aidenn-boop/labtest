@@ -15,4 +15,5 @@ A="$R/arena"
 SB="docker run -i --rm --network none --cpus 1 --memory 512m --user 65534:65534 --read-only --tmpfs /tmp -v $A:$A:ro"
 mkdir -p field
 echo "bot*1,cmd:$SB field-giddy*3,cmd:$SB field-kanya*3,cmd:$SB field-jq*3,cmd:$SB field-jishnu*3,builtin:expert*3" > field/lineup_A
+echo "bot*1,cmd:$SB field-giddy*6,cmd:$SB field-kanya*3,cmd:$SB field-jq*2,cmd:$SB field-jishnu*2,builtin:expert*2" > field/lineup_B
 docker images --format '{{.Repository}} {{.Size}}' | grep field-

@@ -8,11 +8,14 @@ Stops starting new batches after --deadline-min minutes so results are uploaded 
   ffa_shard.py --shard 3 --nshards 20 --seeds 50090-50199 --jobs 1
   ffa_shard.py --validate --seeds 50000-50005 --jobs 1
 """
-import argparse, time
+import argparse, os, time
 from collections import defaultdict
 
 import harness
 import ffa_doe
+
+
+VARIANT = "ffa=" + os.environ.get("LAB_FIELD_NAME", "A")
 
 
 def main():
@@ -28,7 +31,7 @@ def main():
     seeds = list(range(lo, hi + 1))
     t0 = time.time()
     if a.validate:
-        R = harness.play(ffa_doe.GO, seeds, None, None, "ffa=A", jobs=a.jobs)
+        R = harness.play(ffa_doe.GO, seeds, None, None, VARIANT, jobs=a.jobs)
         print(f"validate: {len(R)} matches", {s: R[s]["score"] for s in sorted(R)}, flush=True)
         return
     D = ffa_doe.design()
@@ -45,7 +48,7 @@ def main():
             if (time.time() - t0) / 60 > a.deadline_min:
                 print("deadline reached; stopping", flush=True)
                 return
-            R = harness.play(ffa_doe.GO, ss[c:c + 6], ffa_doe.params(D[i]), None, "ffa=A", jobs=a.jobs)
+            R = harness.play(ffa_doe.GO, ss[c:c + 6], ffa_doe.params(D[i]), None, VARIANT, jobs=a.jobs)
             print(f"run {i:2d}: +{len(R)}  ({(time.time() - t0) / 60:.0f} min)", flush=True)
     print("SHARD-DONE", flush=True)
 

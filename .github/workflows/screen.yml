@@ -23,6 +23,8 @@ jobs:
           echo "mode=$(jq -r .mode jobs/run.json)" >> "$GITHUB_OUTPUT"
           echo "seeds=$(jq -r .seeds jobs/run.json)" >> "$GITHUB_OUTPUT"
           echo "jobs=$(jq -r .jobs jobs/run.json)" >> "$GITHUB_OUTPUT"
+          echo "design=$(jq -r '.design // "1"' jobs/run.json)" >> "$GITHUB_OUTPUT"
+          echo "field=$(jq -r '.field // "A"' jobs/run.json)" >> "$GITHUB_OUTPUT"
       - name: Skip extra shards in validate mode
         if: steps.job.outputs.mode == 'validate' && matrix.shard != 0
         run: echo "validate uses shard 0 only"
@@ -44,6 +46,8 @@ jobs:
           LAB_FIELD: ${{ github.workspace }}/field
           LAB_BOT: ${{ github.workspace }}/bin/mechbot
           LAB_CACHE: ${{ github.workspace }}/out/shard-${{ matrix.shard }}.jsonl
+          LAB_DESIGN: ${{ steps.job.outputs.design }}
+          LAB_FIELD_NAME: ${{ steps.job.outputs.field }}
         run: |
           mkdir -p out
           nproc; free -g | head -2
