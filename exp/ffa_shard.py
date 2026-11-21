@@ -32,7 +32,9 @@ def main():
         print(f"validate: {len(R)} matches", {s: R[s]["score"] for s in sorted(R)}, flush=True)
         return
     D = ffa_doe.design()
-    pairs = [(i, s) for s in seeds for i in range(len(D)) if ffa_doe.params(D[i]) is not None]
+    # All runs including the shipped one: every seed is played by every configuration in the same
+    # environment, so per-seed demeaning in the analysis cancels any cloud-vs-local offset.
+    pairs = [(i, s) for s in seeds for i in range(len(D))]
     mine = defaultdict(list)
     for k, (i, s) in enumerate(pairs):
         if k % a.nshards == a.shard:
