@@ -29,16 +29,16 @@ jobs:
         if: steps.job.outputs.mode == 'validate' && matrix.shard != 0
         run: echo "validate uses shard 0 only"
       - uses: actions/setup-python@v5
-        if: steps.job.outputs.mode == 'screen' || matrix.shard == 0
+        if: steps.job.outputs.mode != 'validate' || matrix.shard == 0
         with:
           python-version: "3.13"
       - name: Build bots and field
-        if: steps.job.outputs.mode == 'screen' || matrix.shard == 0
+        if: steps.job.outputs.mode != 'validate' || matrix.shard == 0
         run: |
           pip install -q numpy==2.3.4 scipy==1.16.3
           bash ci/build.sh
       - name: Play
-        if: steps.job.outputs.mode == 'screen' || matrix.shard == 0
+        if: steps.job.outputs.mode != 'validate' || matrix.shard == 0
         env:
           LAB: ${{ github.workspace }}
           LAB_PY: python
@@ -54,11 +54,13 @@ jobs:
           cd exp
           if [ "${{ steps.job.outputs.mode }}" = "validate" ]; then
             python -u ffa_shard.py --validate --seeds ${{ steps.job.outputs.seeds }} --jobs ${{ steps.job.outputs.jobs }}
+          elif [ "${{ steps.job.outputs.mode }}" = "practice" ]; then
+            python -u psq_shard.py --shard ${{ matrix.shard }} --nshards 20 --seeds ${{ steps.job.outputs.seeds }} --jobs ${{ steps.job.outputs.jobs }}
           else
             python -u ffa_shard.py --shard ${{ matrix.shard }} --nshards 20 --seeds ${{ steps.job.outputs.seeds }} --jobs ${{ steps.job.outputs.jobs }}
           fi
       - name: Commit results
-        if: always() && (steps.job.outputs.mode == 'screen' || matrix.shard == 0)
+        if: always() && (steps.job.outputs.mode != 'validate' || matrix.shard == 0)
         run: |
           f=out/shard-${{ matrix.shard }}.jsonl
           [ -f "$f" ] || exit 0
