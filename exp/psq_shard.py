@@ -1,5 +1,5 @@
 """One shard of the practice-mode screen (psq.py): every (run, seed) pair, numbered, index % nshards == shard."""
-import argparse, os, time
+import argparse, json, os, time
 from collections import defaultdict
 
 import harness
@@ -19,6 +19,8 @@ def main():
     lo, hi = map(int, a.seeds.split("-"))
     seeds = list(range(lo, hi + 1))
     _, R = psq.runs()
+    if os.environ.get("LAB_CONFIGS"):   # explicit list of MECH_SQ dicts (null = shipped) for paired tests
+        R = json.loads(os.environ["LAB_CONFIGS"])
     pairs = [(i, s) for s in seeds for i in range(len(R))]
     mine = defaultdict(list)
     for k, (i, s) in enumerate(pairs):
