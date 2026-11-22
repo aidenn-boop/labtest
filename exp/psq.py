@@ -26,14 +26,30 @@ FACTORS = {
     "AllFoes": (False, True, False), "FinishRush": (False, True, False), "LethalK": (0.7, 0.9, 0.8),
     "FinishHP": (0.3, 0.46, 0.38), "EngageDist": (45, 75, 60),
 }
+BASE = None
+# Practice screen 2 (LAB_PDESIGN=2): around the confirmed candidate (AllFoes on, Stick 120). Low level = the
+# candidate's value; the control run is the candidate itself. Adds rules levers practice never tried (supply
+# drops: full HP + 3 cubes; the mortar; FireGate) and re-tests screen-1 near-misses now that AllFoes is on.
+import os
+if os.environ.get("LAB_PDESIGN") == "2":
+    BASE = {"AllFoes": True, "Stick": 120}
+    FACTORS = {
+        "MaxTarget": (240, 320, 240), "Pursue": (0, 0.6, 0), "DodgeBoost": (0, 25, 0), "LootRadius": (150, 200, 150),
+        "FinishRush": (False, True, False), "HPw": (0.1, 0.2, 0.1), "LaserSeek": (240, 320, 240),
+        "EngageDist": (60, 75, 60), "Stick": (120, 60, 120), "UseDrops": (False, True, False),
+        "NoMortar": (True, False, True), "FireGate": (False, True, False), "FarmHP": (0.5, 0.9, 0.5),
+        "GunRange": (85, 100, 85), "LaserRange": (120, 150, 120), "LowBonus": (200, 300, 200),
+        "Backstab": (40, 0, 40), "RetreatHP": (0.38, 0.48, 0.38), "Finish": (20, 26, 20),
+        "FightLoot": (70, 100, 70), "LethalK": (0.8, 0.7, 0.8), "ThreatBoost": (0, 30, 0), "CrateUntil": (1e9, 150, 1e9),
+    }
 F = list(FACTORS)
 
 
 def runs():
     D = doe.design(len(F))
     assert doe.verify(D) == "ok"
-    out = [{f: FACTORS[f][0 if x < 0 else 1] for f, x in zip(F, row)} for row in D]
-    out.append(None)  # control: shipped
+    out = [dict(BASE or {}, **{f: FACTORS[f][0 if x < 0 else 1] for f, x in zip(F, row)}) for row in D]
+    out.append(dict(BASE) if BASE else None)  # control: shipped (design 1) or the candidate (design 2)
     return D, out
 
 

@@ -48,6 +48,7 @@ jobs:
           LAB_BOT: ${{ github.workspace }}/bin/mechbot
           LAB_CACHE: ${{ github.workspace }}/out/shard-${{ matrix.shard }}.jsonl
           LAB_DESIGN: ${{ steps.job.outputs.design }}
+          LAB_PDESIGN: ${{ steps.job.outputs.design }}
           LAB_FIELD_NAME: ${{ steps.job.outputs.field }}
           LAB_CONFIGS: ${{ steps.job.outputs.configs }}
         run: |

@@ -9,7 +9,7 @@ docker run --rm -u $(id -u):$(id -g) -v "$R/bot":/src -w /src -e CGO_ENABLED=0 -
 mkdir -p bin && mv bot/mechbot bin/mechbot
 docker build -q -t field-giddy rivals/giddygiddyboy >/dev/null || echo "WARN: field-giddy"
 clone() { ( git clone -q "https://github.com/$1" "/tmp/$2" && git -C "/tmp/$2" checkout -q "$3" && docker build -q -t "field-$2" "/tmp/$2" >/dev/null ) || echo "WARN: could not build field-$2"; }
-clone devakchow/team-kanyaraasi-mech-royale kanya 6a17c499d6b881ee4eca0051a4bf5c9fae5ce6c2
+docker build -q -t field-kanya rivals/kanyaraasi >/dev/null || echo "WARN: field-kanya"   # repo went private; vendored at 6a17c49 (MIT)
 clone JuanQuenga/buildathon-mech-royale jq 48288e2b84f8c96685fdd98f09b4960bf1c51876
 clone JishnuMadav/mech-royale jishnu d53c5daf90caaf5d1945868f597db247aa121e61
 A="$R/arena"
