@@ -46,6 +46,7 @@ jobs:
           LAB_ARENA: ${{ github.workspace }}/arena
           LAB_FIELD: ${{ github.workspace }}/field
           LAB_BOT: ${{ github.workspace }}/bin/mechbot
+          LAB_WAIBOT: ${{ github.workspace }}/bin/waibot
           LAB_CACHE: ${{ github.workspace }}/out/shard-${{ matrix.shard }}.jsonl
           LAB_DESIGN: ${{ steps.job.outputs.design }}
           LAB_PDESIGN: ${{ steps.job.outputs.design }}
@@ -57,6 +58,8 @@ jobs:
           cd exp
           if [ "${{ steps.job.outputs.mode }}" = "validate" ]; then
             python -u ffa_shard.py --validate --seeds ${{ steps.job.outputs.seeds }} --jobs ${{ steps.job.outputs.jobs }}
+          elif [ "${{ steps.job.outputs.mode }}" = "wai" ]; then
+            python -u wai_shard.py --set ${{ steps.job.outputs.design }} --shard ${{ matrix.shard }} --nshards 20 --seeds ${{ steps.job.outputs.seeds }} --jobs ${{ steps.job.outputs.jobs }}
           elif [ "${{ steps.job.outputs.mode }}" = "practice" ]; then
             python -u psq_shard.py --shard ${{ matrix.shard }} --nshards 20 --seeds ${{ steps.job.outputs.seeds }} --jobs ${{ steps.job.outputs.jobs }}
           else

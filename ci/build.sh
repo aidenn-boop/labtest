@@ -7,6 +7,8 @@ G="golang:1.26.1-bookworm@sha256:ab3d6955bbc813a0f3fdf220c1d817dd89c0b3f283777db
 docker run --rm -u $(id -u):$(id -g) -v "$R/bot":/src -w /src -e CGO_ENABLED=0 -e GOOS=linux -e GOARCH=amd64 \
   -e GOCACHE=/tmp/gocache -e HOME=/tmp $G go build -trimpath -ldflags="-s -w" -o /src/mechbot ./cmd/bot
 mkdir -p bin && mv bot/mechbot bin/mechbot
+docker run --rm -u $(id -u):$(id -g) -v "$R/bots/wai":/src -w /src -e CGO_ENABLED=0 -e GOOS=linux -e GOARCH=amd64 \n  -e GOCACHE=/tmp/gocache -e HOME=/tmp $G go build -trimpath -ldflags="-s -w" -o /src/mechbot ./cmd/bot
+mv bots/wai/mechbot bin/waibot
 docker build -q -t field-giddy rivals/giddygiddyboy >/dev/null || echo "WARN: field-giddy"
 clone() { ( git clone -q "https://github.com/$1" "/tmp/$2" && git -C "/tmp/$2" checkout -q "$3" && docker build -q -t "field-$2" "/tmp/$2" >/dev/null ) || echo "WARN: could not build field-$2"; }
 docker build -q -t field-kanya rivals/kanyaraasi >/dev/null || echo "WARN: field-kanya"   # repo went private; vendored at 6a17c49 (MIT)

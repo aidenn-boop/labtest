@@ -40,7 +40,11 @@ def play(bot, seeds, p=None, sq=None, variant="jpl=0.5", jobs=None):
     k = cfg_key(bot, p, sq, variant)
     todo = [s for s in seeds if (k, s) not in c]
     if todo:
-        env = (f"MECH_P='{json.dumps(p)}' " if p else "") + (f"MECH_SQ='{json.dumps(sq)}' " if sq else "")
+        if os.environ.get("LAB_FLAGMODE") == "1":   # Wai and Jai's bot: MECH_FLAGS="key=value,..." (bools 1/0)
+            fl = ",".join(f"{k}={int(v) if isinstance(v, bool) else v}" for k, v in (p or {}).items())
+            env = f"MECH_FLAGS='{fl}' " if fl else ""
+        else:
+            env = (f"MECH_P='{json.dumps(p)}' " if p else "") + (f"MECH_SQ='{json.dumps(sq)}' " if sq else "")
         tmp = LAB / f"exp/.h-{os.getpid()}.jsonl"
         tmp.unlink(missing_ok=True)
         argv = [PY, str(LAB / "sim/run_matches.py"), "--arena", ARENA, "--bot", env + bot,
